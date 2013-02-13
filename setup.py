@@ -16,8 +16,8 @@ from victims_hash import __version__, __author__
 setup(
     name="victims_hash",
     version=__version__,
-    description="Fille me in",
-    long_description="",
+    description="Pull's hashes and metadata from language archives",
+    long_description="Pull's hashes and metadata from language archives.",
     author=__author__,
     url="https://github.com/victims/victims-hash",
     download_url="https://github.com/victims/victims-hash",
@@ -29,6 +29,12 @@ setup(
     include_package_data=True,
 
     #test_suite="",
+
+    entry_points={
+        'console_scripts': [
+            'victims-hash-autoprocess = vicims_hash.autoprocess:main',
+        ]
+    },
 
     classifiers=[
         'Intended Audience :: Developers',
