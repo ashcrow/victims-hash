@@ -32,7 +32,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'victims-hash-autoprocess = vicims_hash.autoprocess:main',
+            'victims-hash-autoprocess = victims_hash.autoprocess:main',
         ]
     },
 
