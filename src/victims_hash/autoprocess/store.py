@@ -6,9 +6,9 @@ def echo(filename, data, config):
     print filename, data
 
 
-def mongo(filename, data, config):
+def victims(filename, data, config):
     """
-    Saves back to mongodb.
+    Saves back to victims mongodb.
 
     Config expected to be like so::
 
@@ -17,8 +17,12 @@ def mongo(filename, data, config):
        database=mydb
        collection=data
     """
+    import os.path
     from pymongo import Connection
 
-    connection = Connection(config['host'], config['port'])
+    connection = Connection(config['host'], int(config['port']))
     db = getattr(connection, config['database'])
-    db[config['collection']].insert(data)
+    
+    db[config['collection']].update(
+        {'name': os.path.basename(filename)},
+        {'$set': {'hashes': data['hashes'], 'meta': data['meta']}})
