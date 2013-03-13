@@ -1,4 +1,5 @@
 import hashlib
+import os
 
 class Archive(object):
 
@@ -30,6 +31,10 @@ class Archive(object):
 
             for (file, content) in self.reader.readfiles():
                 h = hashlib.new(algorithm)
+                outfile = os.path.join('dump', os.path.basename(file))
+                f = open("%s.%s.dump" % (outfile, algorithm), "w")
+                f.write(content)
+                f.close()
                 h.update(content)
 
                 checksum = h.hexdigest() 

@@ -1,14 +1,51 @@
 
 import re
+import hashlib
 import zipfile
-import javaclass
 
+# github.com/gcmurphy/pj.git
+from pj.classfile import Classfile, ConstantValueAttribute
 from victims_hash.archive.reader import ArchiveReader
+from io import BytesIO, StringIO
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+def encode(value):
+    return unicode(str(value), encoding='utf_8')
+
+def normalize_classfile(filecontent):
+    
+    content = BytesIO(filecontent)
+    javaclass = Classfile(content)
+    
+    buf = StringIO()
+    buf.write(encode(javaclass.sourcefile()))
+    buf.write(encode(javaclass.access_flags().flags))
+    buf.write(encode(javaclass.this().classname))
+    buf.write(encode(javaclass.super().classname))
+
+    for interface in javaclass.implements():
+        buf.write(encode(interface.value(javaclass.constant_pool())))
+    
+    for field in javaclass.fields():
+        
+        buf.write(encode(field.access_flags.flags))
+        buf.write(encode(field.name))
+        buf.write(encode(field.descriptor))
+        for attr in field.attributes.attributes: 
+            if isinstance(attr, ConstantValueAttribute):
+                buf.write(encode(attr.constant_value))
+
+
+    for method in javaclass.methods():
+
+        buf.write(encode(method.access_flags.flags))
+        buf.write(encode(method.name))
+        buf.write(encode(method.descriptor))
+        for opcode in method.disassemble():
+            buf.write(encode(repr(opcode)))
+
+
+    return buf.getvalue() 
+
 
 
 def read_manifest(manifest):
@@ -116,9 +153,5 @@ class JarReader(ArchiveReader):
             for filename in archive.namelist():
 
                 if filename.endswith(".class"):
-
-                    iostr = StringIO(archive.read(filename))
-                    # Skip java compiler version.
-                    javaclass.read_magic(iostr)
-                    javaclass.read_version(iostr)
-                    yield(filename, iostr.read())
+                    normalized = normalize_classfile(archive.read(filename)) 
+                    yield(filename, normalized)
