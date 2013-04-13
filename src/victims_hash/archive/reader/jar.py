@@ -1,6 +1,5 @@
 
 import re
-import hashlib
 import zipfile
 
 # github.com/gcmurphy/pj.git
@@ -8,14 +7,16 @@ from pj.classfile import Classfile, ConstantValueAttribute
 from victims_hash.archive.reader import ArchiveReader
 from io import BytesIO, StringIO
 
+
 def encode(value):
     return unicode(str(value), encoding='utf_8')
 
+
 def normalize_classfile(filecontent):
-    
+
     content = BytesIO(filecontent)
     javaclass = Classfile(content)
-    
+
     buf = StringIO()
     buf.write(encode(javaclass.sourcefile()))
     buf.write(encode(javaclass.access_flags().flags))
@@ -24,37 +25,32 @@ def normalize_classfile(filecontent):
 
     for interface in javaclass.implements():
         buf.write(encode(interface.value(javaclass.constant_pool())))
-    
+
     for field in javaclass.fields():
-        
+
         buf.write(encode(field.access_flags.flags))
         buf.write(encode(field.name))
         buf.write(encode(field.descriptor))
-        for attr in field.attributes.attributes: 
+        for attr in field.attributes.attributes:
             if isinstance(attr, ConstantValueAttribute):
                 buf.write(encode(attr.constant_value))
 
-
     for method in javaclass.methods():
-
         buf.write(encode(method.access_flags.flags))
         buf.write(encode(method.name))
         buf.write(encode(method.descriptor))
         for opcode in method.disassemble():
             buf.write(encode(repr(opcode)))
 
-
-    return buf.getvalue() 
-
+    return buf.getvalue()
 
 
 def read_manifest(manifest):
-
     """
-    Extract the information from the MANIFEST.MF file included with 
-    the JAR file. 
+    Extract the information from the MANIFEST.MF file included with
+    the JAR file.
 
-    Parameters: 
+    Parameters:
         - `manifest`: File like object to extract the metadata from.
     """
 
@@ -64,9 +60,10 @@ def read_manifest(manifest):
     for line in manifest.readlines():
 
         if ':' in line:
-
-            kw, sep, val = line.partition(':') 
+            kw, sep, val = line.partition(':')
             if kw.endswith('http') and val.startswith('//'):
+                # FIXME: PEP8 check complaints about keyword not existing
+                # should this be 'kw' frob above?
                 metadata[keyword] += line.rstrip()
 
             else:
@@ -75,18 +72,18 @@ def read_manifest(manifest):
 
         else:
             metadata[keyword] += line.rstrip()
- 
+
     # Filter out unwanted keys
-    return dict((k, v) for k,v in metadata.iteritems() if metadata_whitelist.match(k) != None)
+    return dict((k, v) for k, v in metadata.iteritems() if metadata_whitelist.match(k) is not None)
 
 
 def read_pom_properties(properties):
     """
     Extract meta information from the pom.properties file. This usually
-    includes the artifact id, group id, and version information as per 
-    the maven central repository. 
+    includes the artifact id, group id, and version information as per
+    the maven central repository.
 
-    Parameters: 
+    Parameters:
         - `properties`: File like object to extract the metadata from
     """
 
@@ -99,8 +96,8 @@ def read_pom_properties(properties):
 
     metadata = {}
 
-    for line in properties: 
-        
+    for line in properties:
+
         if line.startswith('#'):
             continue
 
@@ -109,6 +106,7 @@ def read_pom_properties(properties):
             metadata[key] = value.rstrip()
 
     return metadata
+
 
 class JarReader(ArchiveReader):
 
@@ -123,22 +121,23 @@ class JarReader(ArchiveReader):
         metadata = []
 
         with zipfile.ZipFile(self.io) as archive:
-    
+
             manifest_file = "META-INF/MANIFEST.MF"
             with archive.open(manifest_file) as manifest:
                 metadata.append({
-                    "filename"  : manifest_file,
+                    "filename": manifest_file,
                     "properties": read_manifest(manifest)})
 
-            pom_properties = filter(lambda x: x.endswith('pom.properties'),\
+            pom_properties = filter(
+                lambda x: x.endswith('pom.properties'),
                 archive.namelist())
 
             if len(pom_properties) > 0:
                 pom = pom_properties.pop(0)
-                with archive.open(pom) as properties: 
+                with archive.open(pom) as properties:
                     metadata.append({
-                        "filename" : pom, 
-                        "properties" : read_pom_properties(properties)})
+                        "filename": pom,
+                        "properties": read_pom_properties(properties)})
 
         return metadata
 
@@ -153,5 +152,5 @@ class JarReader(ArchiveReader):
             for filename in archive.namelist():
 
                 if filename.endswith(".class"):
-                    normalized = normalize_classfile(archive.read(filename)) 
+                    normalized = normalize_classfile(archive.read(filename))
                     yield(filename, normalized)
