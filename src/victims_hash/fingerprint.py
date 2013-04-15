@@ -22,7 +22,7 @@ def fingerprint(file, io=None):
             archive_instance = Archive(EggReader(io)).fingerprint()
 
         if not archive_instance:
-            raise NotImplemtedError("No support for %s files." % file)
+            raise NotImplementedError("No support for %s files." % file)
         return archive_instance
 
     except Exception, ex:

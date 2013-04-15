@@ -1,4 +1,5 @@
 
+
 def echo(filename, data, config):
     """
     Prints results out for testing.
@@ -22,7 +23,7 @@ def victims(filename, data, config):
 
     connection = Connection(config['host'], int(config['port']))
     db = getattr(connection, config['database'])
-    
+
     db[config['collection']].update(
         {'name': os.path.basename(filename)},
         {'$set': {'hashes': data['hashes'], 'meta': data['meta']}})

@@ -15,7 +15,8 @@ class GemReader(ArchiveReader):
            - `hints`: specify things to look for if available.
         """
         self.io.seek(0)
-        metadata = {}
+        # FIXME: This is never used according to pep8 check
+        #metadata = {}
 
         with tarfile.open(self.io) as archive:
             for filename in archive.getnames():
