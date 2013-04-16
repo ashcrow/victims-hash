@@ -8,6 +8,6 @@ install:
   - pip install -e . --use-mirrors
 script:
   - pep8 --repeat src/
-  - nosetests -v --with-coverage --cover-package=victims-hash --cover-min-percentage=0 test/*.py
+  - nosetests -v --with-coverage --cover-package=victims_hash --cover-min-percentage=0 test/*.py
 notifications:
   email: false
