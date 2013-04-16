@@ -21,7 +21,9 @@ setup(
     author=__author__,
     url="https://github.com/victims/victims-hash",
     download_url="https://github.com/victims/victims-hash",
-
+    # 'pj' is needed as well but may not be available via pip
+    # needs verification
+    install_requires=['argparse', 'pyinotify'],
     #license="",
 
     packages=find_packages('src'),

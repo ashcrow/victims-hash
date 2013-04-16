@@ -1,11 +1,10 @@
 
 from archive.archive import Archive
-from archive.reader.jar import JarReader
-from archive.reader.gem import GemReader
-from archive.reader.egg import EggReader
 
 
 def fingerprint(file, io=None):
+    if file and io:
+        raise Exception("Can not process filename and IO.")
 
     archive_instance = None
     if not io:
@@ -13,12 +12,15 @@ def fingerprint(file, io=None):
 
     try:
         if file.endswith(".jar"):
+            from archive.reader.jar import JarReader
             archive_instance = Archive(JarReader(io)).fingerprint()
 
         elif file.endswith(".gem"):
+            from archive.reader.gem import GemReader
             archive_instance = Archive(GemReader(io)).fingerprint()
 
         elif file.endswith(".egg"):
+            from archive.reader.egg import EggReader
             archive_instance = Archive(EggReader(io)).fingerprint()
 
         if not archive_instance:
